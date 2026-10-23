@@ -4,272 +4,296 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080914">
-<meta name="description" content="Aether Alchemist — interactive GPU-generated art with fluid fields and optional audio reactivity.">
+<meta name="theme-color" content="#070711">
+<meta name="description" content="Aether Alchemist — an interactive GPU generative art studio.">
+<title>Aether Alchemist — Living Matter</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
-<title>Aether Alchemist Studio</title>
 <style>
-:root{color-scheme:dark;--bg:#080914;--panel:#101426;--border:#252c45;--text:#f4f5ff;--muted:#929bb7;--purple:#a855f7;--cyan:#67e8f9;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+:root{color-scheme:dark;--bg:#070711;--panel:#101020;--line:#282841;--muted:#9696b8;--purple:#bd76ff;--cyan:#62f4ef}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--text)}
+body{margin:0;background:var(--bg);color:#f5f3ff;font:14px system-ui,-apple-system,sans-serif}
 button,input{font:inherit}
-button{touch-action:manipulation}
+button{cursor:pointer;touch-action:manipulation}
 button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-.app{width:min(1800px,100%);min-height:100vh;min-height:100dvh;margin:auto;padding:18px;display:flex;flex-direction:column;gap:16px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:14px}
-h1{margin:0;font-size:clamp(1.15rem,3vw,1.7rem);font-weight:900;letter-spacing:-.055em;background:linear-gradient(110deg,#c084fc,#818cf8,#67e8f9);color:transparent;background-clip:text}
-.subtitle,.muted,.footer{color:var(--muted);font-size:.8rem}
-.subtitle{margin-top:4px}
-.dashboard{display:grid;grid-template-columns:minmax(250px,310px) minmax(0,1fr);gap:16px;flex:1;min-height:440px}
-.panel,.viewer{min-width:0;border:1px solid var(--border);border-radius:16px;background:var(--panel)}
-.panel{padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto}
-.group{display:grid;gap:10px;padding:12px;background:#080b15;border:1px solid #20263b;border-radius:11px}
-.group-title{color:var(--cyan);font-size:.69rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
-label{font-size:.8rem;color:#d8def2}
-.range-head{display:flex;justify-content:space-between;gap:8px}
-output{color:var(--cyan);font: .78rem ui-monospace,monospace}
-input[type=range]{width:100%;accent-color:var(--cyan)}
-input[type=file]{max-width:100%;font-size:.8rem}
-.btn{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 12px;border-radius:9px;border:1px solid var(--border);color:var(--text);background:#171c31;cursor:pointer;font-size:.82rem;font-weight:700}
-.btn.primary{background:linear-gradient(120deg,#9333ea,#4f46e5);border-color:transparent}
-.btn:hover{filter:brightness(1.12)}
-.btn.active{border-color:#34d399;color:#6ee7b7}
-.btn-row,.header-actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn-row>*{flex:1}
-.viewer{position:relative;min-height:0;overflow:hidden;background:#03040a}
-canvas{display:block;width:100%;height:100%;min-height:400px;touch-action:none;cursor:crosshair}
-.status{position:absolute;z-index:2;left:12px;top:12px;padding:7px 11px;border:1px solid #303650;border-radius:30px;background:#080914e8;font:.72rem ui-monospace,monospace}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;background:#a855f7;box-shadow:0 0 9px #a855f7}
-.message{padding:10px 12px;border-radius:9px;background:#171c31;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
-.message.error{color:#fca5a5;border:1px solid #7f1d1d}
-.footer{font-size:.73rem}
-[hidden]{display:none!important}
-@media(min-width:900px){.dashboard{height:calc(100dvh - 125px)}.panel{max-height:calc(100dvh - 125px)}}
-@media(max-width:760px){.app{padding:12px;gap:12px}.dashboard{grid-template-columns:1fr;min-height:0}.viewer{order:1;min-height:48dvh}.panel{order:2;overflow:visible}canvas{min-height:48dvh}.header-actions{max-width:135px}}
+.app{min-height:100dvh;display:flex;flex-direction:column;padding:14px;gap:12px;max-width:1800px;margin:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 2px 12px;border-bottom:1px solid var(--line)}
+.brand{font-size:clamp(19px,3vw,28px);font-weight:950;letter-spacing:-1.5px;background:linear-gradient(100deg,#e3a7ff,#8e88ff,#62f4ef);background-clip:text;color:transparent}
+.sub{font-size:11px;color:var(--muted);letter-spacing:1.3px;text-transform:uppercase}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+button,.file-label{border:1px solid var(--line);border-radius:9px;background:#19192c;color:#f5f3ff;padding:10px 12px;font-weight:650;font-size:12px}
+button:hover,.file-label:hover{border-color:#8f74e9}
+button.primary{background:linear-gradient(120deg,#8b3de2,#5549cf);border-color:transparent}
+button.active{border-color:var(--cyan);color:var(--cyan)}
+.layout{display:grid;grid-template-columns:265px minmax(0,1fr);gap:12px;flex:1;min-height:0}
+.controls{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:12px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.section{display:grid;gap:9px}
+.section h2{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);margin:0}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.preset{padding:12px 7px;text-align:left;min-height:54px}
+.preset strong{display:block;font-size:12px}
+.preset span{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+label{font-size:12px;color:#d8d5ef}
+output{font-size:11px;color:var(--cyan);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:#c084fc}
+input[type=file]{width:100%;font-size:11px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);width:100%;margin:0}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.viewer{position:relative;min-width:0;min-height:480px;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#030309}
+canvas{display:block;width:100%;height:100%;min-height:480px;touch-action:none}
+.hud{position:absolute;left:12px;top:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;flex-wrap:wrap}
+.pill{background:#090914d9;border:1px solid #34344d;border-radius:20px;padding:7px 10px;font-size:10px;letter-spacing:.4px;backdrop-filter:blur(12px)}
+.pill b{color:var(--cyan)}
+#toast{position:absolute;bottom:12px;left:12px;right:12px;text-align:center;color:#dedaf6;font-size:11px;pointer-events:none;text-shadow:0 1px 6px #000}
+footer{font-size:10px;color:var(--muted);padding:2px}
+@media(min-width:900px){.layout{height:calc(100dvh - 105px)}.controls{max-height:calc(100dvh - 105px)}}
+@media(max-width:700px){.app{padding:9px}.layout{display:flex;flex-direction:column}.viewer{order:0;min-height:48dvh;height:48dvh}.viewer canvas{min-height:0}.controls{order:1;overflow:visible}.sub{font-size:9px}.actions button{padding:9px}.hud{left:8px;top:8px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <div class="app">
 <header>
-<div><h1>AETHER ALCHEMIST</h1><div class="subtitle">Interactive WebGL · Fluid fields · Kinetic resonance</div></div>
-<div class="header-actions">
-<button class="btn" id="installBtn" hidden>Install app</button>
-<button class="btn" id="pauseBtn" aria-pressed="false">Pause</button>
+<div>
+<div class="brand">AETHER ALCHEMIST <span style="font-size:12px;letter-spacing:1px">/ 02</span></div>
+<div class="sub">Living Matter · Generative GPU Studio</div>
+</div>
+<div class="actions">
+<button id="pause">Ⅱ Pause</button>
+<button class="primary" id="export">↗ Export</button>
 </div>
 </header>
 
-<main class="dashboard">
-<aside class="panel" aria-label="Simulation controls">
-<section class="group">
-<div class="group-title">01 / Source material</div>
-<label for="imageLoader">Load an image</label>
-<input id="imageLoader" type="file" accept="image/*">
-<button class="btn" id="clearImageBtn">Use procedural source</button>
-</section>
-<section class="group">
-<div class="group-title">02 / Acoustic resonance</div>
-<button class="btn" id="audioToggle" aria-pressed="false">Enable microphone</button>
-<div class="muted" id="audioStatus" role="status">Microphone off. Audio is optional.</div>
-</section>
-<section class="group">
-<div class="group-title">03 / Fluid advection</div>
-<div class="range-head"><label for="viscSlider">Viscosity retention</label><output id="viscVal">0.990</output></div>
-<input id="viscSlider" type="range" min="950" max="1000" value="990">
-</section>
-<section class="group">
-<div class="group-title">04 / Reaction field</div>
-<div class="range-head"><label for="turingSlider">Growth speed</label><output id="turingVal">0.40</output></div>
-<input id="turingSlider" type="range" min="10" max="80" step="5" value="40">
-</section>
-<section class="group">
-<div class="group-title">05 / Chromatic optics</div>
-<div class="range-head"><label for="prismSlider">Prism split</label><output id="prismVal">0.015</output></div>
-<input id="prismSlider" type="range" min="0" max="50" value="15">
-</section>
-<section class="group">
-<div class="group-title">06 / Signal disruption</div>
-<div class="range-head"><label for="glitchSlider">Glitch intensity</label><output id="glitchVal">0.00</output></div>
-<input id="glitchSlider" type="range" min="0" max="100" step="5" value="0">
-</section>
-<div class="btn-row">
-<button class="btn" id="resetBtn">Reset field</button>
-<button class="btn primary" id="exportBtn">Export PNG</button>
+<main class="layout">
+<aside class="controls">
+<section class="section">
+<h2>01 — Choose your universe</h2>
+<div class="presets">
+<button class="preset active" data-preset="ink"><strong>Liquid Ink</strong><span>Flow & pigment</span></button>
+<button class="preset" data-preset="coral"><strong>Alien Coral</strong><span>Living structures</span></button>
+<button class="preset" data-preset="plasma"><strong>Plasma Bloom</strong><span>Radiant fields</span></button>
+<button class="preset" data-preset="glass"><strong>Prismatic</strong><span>Chromatic glass</span></button>
+<button class="preset" data-preset="storm"><strong>Glitch Storm</strong><span>Signal chaos</span></button>
+<button class="preset" data-preset="photo"><strong>Image Alchemy</strong><span>Transform a photo</span></button>
 </div>
-<div id="appMessage" class="message" role="status" aria-live="polite">Initializing graphics…</div>
+</section>
+<hr>
+<section class="section">
+<h2>02 — Source material</h2>
+<label for="image">Transform an image</label>
+<input id="image" type="file" accept="image/*">
+<div class="tools">
+<button id="procedural">Procedural source</button>
+<button id="savePreset">Save settings</button>
+</div>
+</section>
+<hr>
+<section class="section">
+<h2>03 — Matter & motion</h2>
+<div class="row"><label for="flow">Fluid intensity</label><output id="flowOut">0.65</output></div>
+<input id="flow" type="range" min="0" max="100" value="65">
+<div class="row"><label for="growth">Pattern growth</label><output id="growthOut">0.40</output></div>
+<input id="growth" type="range" min="0" max="100" value="40">
+<div class="row"><label for="viscosity">Trail persistence</label><output id="viscosityOut">0.98</output></div>
+<input id="viscosity" type="range" min="0" max="100" value="98">
+<div class="row"><label for="detail">Simulation detail</label><output id="detailOut">512</output></div>
+<input id="detail" type="range" min="256" max="768" step="128" value="512">
+</section>
+<hr>
+<section class="section">
+<h2>04 — Optical laboratory</h2>
+<div class="row"><label for="prism">Prism dispersion</label><output id="prismOut">0.015</output></div>
+<input id="prism" type="range" min="0" max="50" value="15">
+<div class="row"><label for="glitch">Glitch intensity</label><output id="glitchOut">0.00</output></div>
+<input id="glitch" type="range" min="0" max="100" value="0">
+<div class="row"><label for="imageMix">Source image blend</label><output id="imageMixOut">25%</output></div>
+<input id="imageMix" type="range" min="0" max="100" value="25">
+</section>
+<hr>
+<section class="section">
+<h2>05 — Resonance</h2>
+<button id="audio">♫ Enable microphone</button>
+<div class="row"><label for="audioPower">Audio response</label><output id="audioPowerOut">0.50</output></div>
+<input id="audioPower" type="range" min="0" max="100" value="50">
+</section>
+<div class="tools">
+<button id="reset">↺ Reset field</button>
+<button id="downloadSettings">↓ Export settings</button>
+</div>
+<div id="status" role="status" aria-live="polite" style="color:var(--muted);font-size:11px">Initializing graphics…</div>
 </aside>
 
-<section class="viewer" aria-label="Interactive simulation">
-<div class="status"><span class="dot"></span><span id="engineStatus">Starting WebGL2</span> · <span id="fps">—</span> FPS</div>
-<canvas id="mainGLCanvas" aria-label="Interactive artwork. Drag or touch to disturb the field."></canvas>
+<section class="viewer">
+<canvas id="canvas" aria-label="Interactive generative artwork. Drag or touch to create motion."></canvas>
+<div class="hud">
+<div class="pill"><b>●</b> <span id="engine">INITIALIZING GPU</span></div>
+<div class="pill"><span id="fps">—</span> FPS · <span id="presetName">LIQUID INK</span></div>
+</div>
+<div id="toast">Touch, drag, and paint with motion.</div>
 </section>
 </main>
-<footer class="footer">Images and audio analysis remain local to this app. Microphone access is optional. Installation and offline caching require HTTPS or localhost.</footer>
+<footer>GPU generative art · Images and audio are processed locally · HTTPS recommended for microphone access</footer>
 </div>
 
 <script>
 "use strict";
-(() => {
-const $ = id => document.getElementById(id);
-const canvas = $("mainGLCanvas");
-const message = $("appMessage");
-const engineStatus = $("engineStatus");
-const fpsDisplay = $("fps");
-const audioToggle = $("audioToggle");
-const audioStatus = $("audioStatus");
-const installBtn = $("installBtn");
+(()=>{
+const $=id=>document.getElementById(id);
+const canvas=$("canvas"),status=$("status"),engine=$("engine");
+const controls=["flow","growth","viscosity","detail","prism","glitch","imageMix","audioPower"];
+const presets={
+ink:{flow:75,growth:18,viscosity:98,prism:14,glitch:0,imageMix:20,seed:1},
+coral:{flow:24,growth:78,viscosity:94,prism:9,glitch:0,imageMix:8,seed:2},
+plasma:{flow:62,growth:50,viscosity:85,prism:25,glitch:0,imageMix:0,seed:3},
+glass:{flow:30,growth:24,viscosity:96,prism:42,glitch:3,imageMix:55,seed:4},
+storm:{flow:90,growth:32,viscosity:72,prism:32,glitch:65,imageMix:0,seed:5},
+photo:{flow:40,growth:24,viscosity:98,prism:12,glitch:0,imageMix:70,seed:6}
+};
+let gl=null,simProgram=null,displayProgram=null,vao=null,buffer=null;
+let states=[],current=0,sourceTexture=null,sourceCanvas=null;
+let simSize=512,paused=false,dead=false,raf=0,last=0,frames=0,elapsed=0;
+let pointer={x:.5,y:.5,down:false,dx:0,dy:0,px:.5,py:.5};
+let audioCtx=null,stream=null,analyser=null,audioData=null,audioLevels=[0,0,0];
+let presetName="ink",time=0;
+const simLoc={},displayLoc={};
 
-let gl = null, simProgram = null, displayProgram = null, vao = null, positionBuffer = null;
-let targets = [], sourceTexture = null, sourceImage = null;
-let currentIndex = 0, running = true, contextLost = false;
-let frameHandle = 0, lastTime = 0, fpsFrames = 0, fpsElapsed = 0;
-let audioCtx = null, analyser = null, audioStream = null, audioData = null;
-let deferredInstallPrompt = null, resizeObserver = null;
-let simWidth = 512, simHeight = 512;
-
-const pointer = {x:.5,y:.5,down:false,force:.65};
-const audio = {low:0,mid:0,high:0};
-const simU = {}, displayU = {};
-
-function report(text,error=false){
-message.textContent=text;
-message.classList.toggle("error",error);
+function say(s,error=false){status.textContent=s;status.style.color=error?"#ff9292":"var(--muted)";}
+function shader(type,src){
+const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const m=gl.getShaderInfoLog(s);gl.deleteShader(s);throw Error(m);}
+return s;
 }
-
-function compileShader(type,source){
-const shader=gl.createShader(type);
-if(!shader) throw new Error("Unable to allocate GPU shader.");
-gl.shaderSource(shader,source);
-gl.compileShader(shader);
-if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
-const log=gl.getShaderInfoLog(shader)||"Unknown shader compilation error";
-gl.deleteShader(shader);
-throw new Error(log);
+function program(fs){
+const vs=shader(gl.VERTEX_SHADER,`#version 300 es
+in vec2 position;out vec2 uv;
+void main(){uv=position*.5+.5;gl_Position=vec4(position,0.,1.);}`);
+const f=shader(gl.FRAGMENT_SHADER,fs),p=gl.createProgram();
+gl.attachShader(p,vs);gl.attachShader(p,f);gl.bindAttribLocation(p,0,"position");gl.linkProgram(p);
+gl.deleteShader(vs);gl.deleteShader(f);
+if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
+return p;
 }
-return shader;
-}
-
-function makeProgram(fragmentSource){
-const vsSource=`#version 300 es
-in vec2 position;
-out vec2 vUv;
-void main(){vUv=position*.5+.5;gl_Position=vec4(position,0.,1.);}`;
-const vs=compileShader(gl.VERTEX_SHADER,vsSource);
-const fs=compileShader(gl.FRAGMENT_SHADER,fragmentSource);
-const program=gl.createProgram();
-if(!program){gl.deleteShader(vs);gl.deleteShader(fs);throw new Error("Unable to allocate GPU program.");}
-gl.attachShader(program,vs);
-gl.attachShader(program,fs);
-gl.bindAttribLocation(program,0,"position");
-gl.linkProgram(program);
-gl.deleteShader(vs);
-gl.deleteShader(fs);
-if(!gl.getProgramParameter(program,gl.LINK_STATUS)){
-const log=gl.getProgramInfoLog(program)||"Unknown program link error";
-gl.deleteProgram(program);
-throw new Error(log);
-}
-return program;
-}
-
-const simShader=`#version 300 es
+const simulation=`#version 300 es
 precision highp float;
-in vec2 vUv;
-out vec4 fragColor;
-uniform sampler2D uCurrentBuffer,uSourceTexture;
-uniform vec2 uTexel;
-uniform vec4 uMouse,uParams;
-uniform vec3 uAudio;
-uniform float uTime;
-float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+in vec2 uv;out vec4 outColor;
+uniform sampler2D stateTex,sourceTex;
+uniform vec2 texel,mouse,mouseDelta;
+uniform float down,flow,growth,retention,glitch,clock,audioBass,audioMid,audioPower,seed;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
 void main(){
-vec4 c=texture(uCurrentBuffer,vUv);
-vec4 t=texture(uCurrentBuffer,vUv+vec2(0.,uTexel.y));
-vec4 b=texture(uCurrentBuffer,vUv-vec2(0.,uTexel.y));
-vec4 r=texture(uCurrentBuffer,vUv+vec2(uTexel.x,0.));
-vec4 l=texture(uCurrentBuffer,vUv-vec2(uTexel.x,0.));
-vec2 velocity=c.xy-vec2(r.z-l.z,t.z-b.z)*.35;
-velocity*=uParams.x;
-velocity+=vec2(sin(vUv.y*24.+uTime),cos(vUv.x*24.-uTime))*uAudio.x*.012;
-vec2 back=clamp(vUv-velocity*.035,uTexel*.5,vec2(1.)-uTexel*.5);
-vec4 adv=texture(uCurrentBuffer,back);
-float lap=(t.z+b.z+r.z+l.z)*.25-c.z;
-vec3 src=texture(uSourceTexture,vUv).rgb;
-float luma=dot(src,vec3(.299,.587,.114));
-float density=adv.z+lap*uParams.y*.22;
-density=mix(density,luma,.008+uAudio.y*.025);
-float g=uParams.w;
-float sweep=step(1.-g*.35,hash(vec2(floor(vUv.y*90.),floor(uTime*5.))));
-density+=sweep*g*(hash(vUv+uTime)-.5)*.18;
-velocity.x+=sweep*g*sin(vUv.y*180.+uTime)*.012;
-if(uMouse.z>.5){
-float d=distance(vUv,uMouse.xy);
-float f=max(0.,1.-d/.09)*uMouse.w;
-velocity+=(uMouse.xy-vUv)*f*.12;
-density+=f*.12;
+vec4 c=texture(stateTex,uv);
+vec4 n=texture(stateTex,uv+vec2(0.,texel.y));
+vec4 s=texture(stateTex,uv-vec2(0.,texel.y));
+vec4 e=texture(stateTex,uv+vec2(texel.x,0.));
+vec4 w=texture(stateTex,uv-vec2(texel.x,0.));
+vec2 vel=c.xy;
+float curl=(e.y-w.y)-(n.x-s.x);
+vel+=vec2(curl,-curl)*(.45+flow*.5)*texel;
+vel*=.992;
+vel+=vec2(sin(uv.y*18.+clock*.45),cos(uv.x*17.-clock*.37))*(.0004+flow*.0015);
+vel+=vec2(-vel.y,vel.x)*(.004+flow*.012);
+if(down>.5){
+vec2 d=uv-mouse;float dist=length(d);
+float splat=exp(-dist*dist*850.);
+vel+=mouseDelta*splat*(.025+flow*.08);
+vel+=vec2(-d.y,d.x)*splat*(.003+flow*.025);
 }
-fragColor=vec4(clamp(velocity,vec2(-1.),vec2(1.)),clamp(density,0.,1.),1.);
+vel=clamp(vel,vec2(-.04),vec2(.04));
+vec2 back=clamp(uv-vel*2.0,texel*.5,vec2(1.)-texel*.5);
+vec4 adv=texture(stateTex,back);
+float u=adv.z,v=adv.w;
+float lapV=n.w+s.w+e.w+w.w-4.*v;
+float lapU=n.z+s.z+e.z+w.z-4.*u;
+float feed=.035+seed*.0004;
+float kill=.06+seed*.0003;
+float reaction=u*v*v;
+float du=.16*lapU-reaction+feed*(1.-u);
+float dv=.08*lapV+reaction-(feed+kill)*v;
+u=clamp(u+du*(.3+growth*1.8),0.,1.);
+v=clamp(v+dv*(.3+growth*1.8),0.,1.);
+float source=dot(texture(sourceTex,uv).rgb,vec3(.299,.587,.114));
+v=mix(v,clamp(1.-source,0.,1.),.002);
+v=mix(v,clamp(v+audioBass*audioPower*.03,0.,1.),.08);
+float fault=step(1.-glitch*.006,hash(floor(uv*vec2(180.,120.))+floor(clock*6.)));
+v=clamp(v+fault*glitch*.002,0.,1.);
+if(down>.5){float d=length(uv-mouse);float splat=exp(-d*d*1000.);v=max(v,splat*.8);}
+outColor=vec4(vel,u,v);
+}`;
+const display=`#version 300 es
+precision highp float;
+in vec2 uv;out vec4 color;
+uniform sampler2D stateTex,sourceTex;
+uniform float prism,imageMix,clock,seed;
+void main(){
+vec2 offset=vec2(prism,0.);
+float a=texture(stateTex,uv-offset).w;
+float b=texture(stateTex,uv).w;
+float c=texture(stateTex,uv+offset).w;
+float u=texture(stateTex,uv).z;
+vec3 chemical=vec3(a*.65+b*.3,c*.7+b*.2,b*1.3);
+float bands=sin((uv.x*17.+uv.y*11.+clock*.12)*6.283)*.5+.5;
+vec3 plasma=vec3(.3+.7*b,.12+.85*u,.4+.6*c);
+vec3 organic=mix(chemical,plasma,.38);
+organic+=vec3(.04,.02,.12)*bands*b;
+vec3 photo=texture(sourceTex,uv).rgb;
+vec3 result=mix(organic,photo,imageMix);
+result+=vec3(.06,.015,.08)*sin(clock*.7+uv.y*12.)*b;
+float edge=smoothstep(.02,.8,b);
+result=mix(result,result*vec3(.8,1.05,1.3),edge*.35);
+color=vec4(clamp(result,0.,1.),1.);
 }`;
 
-const displayShader=`#version 300 es
-precision highp float;
-in vec2 vUv;
-out vec4 fragColor;
-uniform sampler2D uCurrentBuffer,uSourceTexture;
-uniform float uPrism,uTime;
-void main(){
-vec2 o=vec2(uPrism,0.);
-float r=texture(uCurrentBuffer,vUv-o).z;
-float g=texture(uCurrentBuffer,vUv).z;
-float b=texture(uCurrentBuffer,vUv+o).z;
-vec3 field=vec3(r*1.22,g*.88,b*1.35);
-vec3 original=texture(uSourceTexture,vUv).rgb;
-vec3 color=mix(original,field,.78);
-color+=vec3(.025,0.,.045)*sin(uTime+vUv.y*8.);
-fragColor=vec4(clamp(color,0.,1.),1.);
-}`;
-
-function cacheUniforms(program,names,target){
-for(const name of names) target[name]=gl.getUniformLocation(program,name);
-}
-
-function makeProceduralImage(){
-const c=document.createElement("canvas");
-c.width=c.height=512;
-const ctx=c.getContext("2d");
-const gradient=ctx.createLinearGradient(0,0,512,512);
-gradient.addColorStop(0,"#312e81");
-gradient.addColorStop(.48,"#c026d3");
-gradient.addColorStop(1,"#06b6d4");
-ctx.fillStyle=gradient;ctx.fillRect(0,0,512,512);
-for(let i=0;i<22;i++){
-const x=i*137.5%512,y=i*83.3%512,r=12+(i*19)%80;
-const g=ctx.createRadialGradient(x,y,0,x,y,r);
-g.addColorStop(0,"rgba(255,255,255,.35)");
-g.addColorStop(1,"rgba(255,255,255,0)");
-ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);
+function makeSource(){
+const c=document.createElement("canvas");c.width=c.height=512;
+const x=c.getContext("2d");
+const g=x.createLinearGradient(0,0,512,512);
+g.addColorStop(0,"#120d36");g.addColorStop(.35,"#9b2fbc");g.addColorStop(.68,"#183f9b");g.addColorStop(1,"#21d8d0");
+x.fillStyle=g;x.fillRect(0,0,512,512);
+for(let i=0;i<40;i++){
+const px=(Math.sin(i*93.7)*.5+.5)*512,py=(Math.cos(i*31.1)*.5+.5)*512,r=10+(i*23)%75;
+const q=x.createRadialGradient(px,py,0,px,py,r);
+q.addColorStop(0,"rgba(255,255,255,.32)");q.addColorStop(1,"rgba(255,255,255,0)");
+x.fillStyle=q;x.fillRect(px-r,py-r,r*2,r*2);
 }
 return c;
 }
-
-function deleteGPUResources(){
+function deleteTargets(){
 if(!gl||gl.isContextLost())return;
-for(const t of targets){
-if(t.texture)gl.deleteTexture(t.texture);
-if(t.framebuffer)gl.deleteFramebuffer(t.framebuffer);
+for(const t of states){gl.deleteTexture(t.texture);gl.deleteFramebuffer(t.fb);}
+states=[];
 }
-targets=[];
-if(sourceTexture)gl.deleteTexture(sourceTexture);
-if(simProgram)gl.deleteProgram(simProgram);
-if(displayProgram)gl.deleteProgram(displayProgram);
-if(vao)gl.deleteVertexArray(vao);
-if(positionBuffer)gl.deleteBuffer(positionBuffer);
-sourceTexture=null;simProgram=null;displayProgram=null;vao=null;positionBuffer=null;
+function makeTexture(w,h,internal,format,type,filter){
+const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+gl.texImage2D(gl.TEXTURE_2D,0,internal,w,h,0,format,type,null);
+return t;
 }
-
+function buildStates(){
+deleteTargets();
+const filter=gl.getExtension("OES_texture_float_linear")?gl.LINEAR:gl.NEAREST;
+for(let i=0;i<2;i++){
+const texture=makeTexture(simSize,simSize,gl.RGBA16F,gl.RGBA,gl.HALF_FLOAT,filter);
+const fb=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texture,0);
+if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE)throw Error("Floating-point framebuffer unavailable on this GPU.");
+states.push({texture,fb});
+}
+gl.bindFramebuffer(gl.FRAMEBUFFER,null);clearState();
+}
+function clearState(){
+if(!gl||gl.isContextLost())return;
+for(let i=0;i<states.length;i++){
+gl.bindFramebuffer(gl.FRAMEBUFFER,states[i].fb);gl.viewport(0,0,simSize,simSize);
+gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+}
+current=0;gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}
 function uploadSource(image){
-sourceImage=image;
+sourceCanvas=image;
 if(!sourceTexture)sourceTexture=gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D,sourceTexture);
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
@@ -279,316 +303,154 @@ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
 gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
-wipeBuffers();
 }
-
-function wipeBuffers(){
-if(!gl||gl.isContextLost()||!targets.length)return;
-for(const target of targets){
-gl.bindFramebuffer(gl.FRAMEBUFFER,target.framebuffer);
-gl.viewport(0,0,simWidth,simHeight);
-gl.clearColor(0,0,0,1);
-gl.clear(gl.COLOR_BUFFER_BIT);
-}
-gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-currentIndex=0;
-}
-
-function initTargets(){
-targets=[];
-const linear=!!gl.getExtension("OES_texture_float_linear");
-for(let i=0;i<2;i++){
-const texture=gl.createTexture(),framebuffer=gl.createFramebuffer();
-if(!texture||!framebuffer)throw new Error("Could not allocate simulation buffers.");
-gl.bindTexture(gl.TEXTURE_2D,texture);
-const filter=linear?gl.LINEAR:gl.NEAREST;
-gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);
-gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);
-gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA16F,simWidth,simHeight,0,gl.RGBA,gl.HALF_FLOAT,null);
-gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer);
-gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texture,0);
-if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE){
-gl.deleteTexture(texture);gl.deleteFramebuffer(framebuffer);
-throw new Error("This GPU cannot render to the required floating-point texture.");
-}
-targets.push({texture,framebuffer});
-}
-wipeBuffers();
-gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-}
-
-function resizeCanvas(){
+function resize(){
 if(!gl||gl.isContextLost())return;
-const rect=canvas.getBoundingClientRect();
-const dpr=Math.min(window.devicePixelRatio||1,2);
-const w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
+const r=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+const w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));
 if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
-gl.viewport(0,0,w,h);
 }
-
-function initializeGL(){
-gl=canvas.getContext("webgl2",{
-alpha:false,depth:false,stencil:false,antialias:false,
-preserveDrawingBuffer:true,premultipliedAlpha:false,
-powerPreference:"high-performance"
-});
-if(!gl)throw new Error("WebGL2 is unavailable in this browser.");
-if(!gl.getExtension("EXT_color_buffer_float"))
-throw new Error("This GPU does not support floating-point render targets.");
-
-simProgram=makeProgram(simShader);
-displayProgram=makeProgram(displayShader);
-cacheUniforms(simProgram,["uCurrentBuffer","uSourceTexture","uTexel","uMouse","uAudio","uParams","uTime"],simU);
-cacheUniforms(displayProgram,["uCurrentBuffer","uSourceTexture","uPrism","uTime"],displayU);
-
-vao=gl.createVertexArray();
-positionBuffer=gl.createBuffer();
-gl.bindVertexArray(vao);
-gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
+function locs(p,names,out){for(const n of names)out[n]=gl.getUniformLocation(p,n);}
+function init(){
+gl=canvas.getContext("webgl2",{alpha:false,antialias:false,preserveDrawingBuffer:true,powerPreference:"high-performance"});
+if(!gl)throw Error("WebGL2 is required.");
+if(!gl.getExtension("EXT_color_buffer_float"))throw Error("This device does not support floating-point GPU simulation textures.");
+simProgram=program(simulation);displayProgram=program(display);
+locs(simProgram,["stateTex","sourceTex","texel","mouse","mouseDelta","down","flow","growth","retention","glitch","clock","audioBass","audioMid","audioPower","seed"],simLoc);
+locs(displayProgram,["stateTex","sourceTex","prism","imageMix","clock","seed"],displayLoc);
+vao=gl.createVertexArray();buffer=gl.createBuffer();
+gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
 gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
-gl.enableVertexAttribArray(0);
-gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
 gl.bindVertexArray(null);
-gl.disable(gl.DEPTH_TEST);
-gl.disable(gl.BLEND);
-
-resizeCanvas();
-initTargets();
-sourceTexture=null;
-uploadSource(sourceImage||makeProceduralImage());
-engineStatus.textContent="WebGL2 online";
+buildStates();sourceTexture=null;uploadSource(sourceCanvas||makeSource());resize();
+engine.textContent="GPU ONLINE";
 }
-
-function bindTexture(unit,texture,uniforms,name){
-gl.activeTexture(gl.TEXTURE0+unit);
-gl.bindTexture(gl.TEXTURE_2D,texture);
-gl.uniform1i(uniforms[name],unit);
-}
-
-function updateAudio(){
-if(!analyser||!audioData)return;
-analyser.getByteFrequencyData(audioData);
-const band=(start,end)=>{
-let sum=0,count=0;
-for(let i=start;i<Math.min(end,audioData.length);i++){sum+=audioData[i];count++;}
-return sum/(Math.max(1,count)*255);
-};
-audio.low=band(1,4);audio.mid=band(4,12);audio.high=band(12,24);
-}
-
+function val(id){return Number($(id).value)/100;}
 function draw(now){
-if(contextLost||!gl||gl.isContextLost())return;
-if(!running||document.hidden){frameHandle=requestAnimationFrame(draw);return;}
-const dt=lastTime?Math.min((now-lastTime)/1000,.05):1/60;
-lastTime=now;
-const time=now/1000;
-fpsFrames++;fpsElapsed+=dt;
-if(fpsElapsed>=1){fpsDisplay.textContent=String(Math.round(fpsFrames/fpsElapsed));fpsFrames=0;fpsElapsed=0;}
-updateAudio();
-
-const next=1-currentIndex;
+if(dead||!gl||gl.isContextLost())return;
+raf=requestAnimationFrame(draw);
+if(paused||document.hidden)return;
+const dt=last?Math.min((now-last)/1000,.04):.016;last=now;time+=dt;
+frames++;elapsed+=dt;if(elapsed>=1){$("fps").textContent=Math.round(frames/elapsed);frames=0;elapsed=0;}
+if(analyser&&audioData){
+analyser.getByteFrequencyData(audioData);
+const band=(a,b)=>{let sum=0,n=0;for(let i=a;i<Math.min(b,audioData.length);i++){sum+=audioData[i];n++;}return sum/(Math.max(1,n)*255);};
+audioLevels=[band(1,4),band(4,12),band(12,24)];
+}
+const flow=val("flow"),growth=val("growth"),retention=val("viscosity"),glitch=val("glitch");
+const next=1-current;
 gl.bindVertexArray(vao);
-gl.useProgram(simProgram);
-gl.bindFramebuffer(gl.FRAMEBUFFER,targets[next].framebuffer);
-gl.viewport(0,0,simWidth,simHeight);
-gl.uniform2f(simU.uTexel,1/simWidth,1/simHeight);
-gl.uniform4f(simU.uMouse,pointer.x,pointer.y,pointer.down?1:0,pointer.force);
-gl.uniform3f(simU.uAudio,audio.low,audio.mid,audio.high);
-gl.uniform4f(simU.uParams,Number($("viscSlider").value)/1000,Number($("turingSlider").value)/100,Number($("prismSlider").value)/1000,Number($("glitchSlider").value)/100);
-gl.uniform1f(simU.uTime,time);
-bindTexture(0,targets[currentIndex].texture,simU,"uCurrentBuffer");
-bindTexture(1,sourceTexture,simU,"uSourceTexture");
+gl.useProgram(simProgram);gl.bindFramebuffer(gl.FRAMEBUFFER,states[next].fb);gl.viewport(0,0,simSize,simSize);
+gl.uniform2f(simLoc.texel,1/simSize,1/simSize);
+gl.uniform2f(simLoc.mouse,pointer.x,pointer.y);
+gl.uniform2f(simLoc.mouseDelta,pointer.dx,pointer.dy);
+gl.uniform1f(simLoc.down,pointer.down?1:0);
+gl.uniform1f(simLoc.flow,flow);gl.uniform1f(simLoc.growth,growth);
+gl.uniform1f(simLoc.retention,retention);gl.uniform1f(simLoc.glitch,glitch);
+gl.uniform1f(simLoc.clock,time);gl.uniform1f(simLoc.audioBass,audioLevels[0]);
+gl.uniform1f(simLoc.audioMid,audioLevels[1]);gl.uniform1f(simLoc.audioPower,val("audioPower"));
+gl.uniform1f(simLoc.seed,presets[presetName].seed);
+gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,states[current].texture);gl.uniform1i(simLoc.stateTex,0);
+gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,sourceTexture);gl.uniform1i(simLoc.sourceTex,1);
 gl.drawArrays(gl.TRIANGLES,0,6);
-
-gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-gl.viewport(0,0,canvas.width,canvas.height);
+gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);
 gl.useProgram(displayProgram);
-gl.uniform1f(displayU.uPrism,Number($("prismSlider").value)/1000);
-gl.uniform1f(displayU.uTime,time);
-bindTexture(0,targets[next].texture,displayU,"uCurrentBuffer");
-bindTexture(1,sourceTexture,displayU,"uSourceTexture");
-gl.drawArrays(gl.TRIANGLES,0,6);
-currentIndex=next;
-gl.bindVertexArray(null);
-frameHandle=requestAnimationFrame(draw);
+gl.uniform1f(displayLoc.prism,Number($("prism").value)/4000);
+gl.uniform1f(displayLoc.imageMix,val("imageMix"));
+gl.uniform1f(displayLoc.clock,time);gl.uniform1f(displayLoc.seed,presets[presetName].seed);
+gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,states[next].texture);gl.uniform1i(displayLoc.stateTex,0);
+gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,sourceTexture);gl.uniform1i(displayLoc.sourceTex,1);
+gl.drawArrays(gl.TRIANGLES,0,6);gl.bindVertexArray(null);current=next;
+pointer.dx*=.5;pointer.dy*=.5;
 }
-
-function updateLabels(){
-$("viscVal").textContent=(+$("viscSlider").value/1000).toFixed(3);
-$("turingVal").textContent=(+$("turingSlider").value/100).toFixed(2);
-$("prismVal").textContent=(+$("prismSlider").value/1000).toFixed(3);
-$("glitchVal").textContent=(+$("glitchSlider").value/100).toFixed(2);
+function labels(){
+$("flowOut").textContent=val("flow").toFixed(2);
+$("growthOut").textContent=val("growth").toFixed(2);
+$("viscosityOut").textContent=(.85+val("viscosity")*.149).toFixed(3);
+$("detailOut").textContent=$("detail").value;
+$("prismOut").textContent=(+$("prism").value/1000).toFixed(3);
+$("glitchOut").textContent=val("glitch").toFixed(2);
+$("imageMixOut").textContent=$("imageMix").value+"%";
+$("audioPowerOut").textContent=val("audioPower").toFixed(2);
 }
-["viscSlider","turingSlider","prismSlider","glitchSlider"].forEach(id=>$(id).addEventListener("input",updateLabels));
-
-function updatePointer(e){
-const r=canvas.getBoundingClientRect();
-pointer.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
-pointer.y=1-Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));
+function setPreset(name){
+presetName=name;
+const p=presets[name];if(!p)return;
+for(const k of ["flow","growth","viscosity","prism","glitch","imageMix"])$(k).value=p[k];
+document.querySelectorAll("[data-preset]").forEach(b=>b.classList.toggle("active",b.dataset.preset===name));
+$("presetName").textContent=name.toUpperCase();labels();
+if(name==="coral")say("Alien Coral selected. Let the patterns grow.");
+else if(name==="photo")say("Image Alchemy selected. Load a photograph to begin.");
+else say(name[0].toUpperCase()+name.slice(1)+" selected.");
 }
+document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>setPreset(b.dataset.preset)));
+controls.forEach(id=>$(id).addEventListener("input",labels));
 canvas.addEventListener("pointerdown",e=>{
-if(e.pointerType==="mouse"&&e.button!==0)return;
-updatePointer(e);pointer.down=true;
-try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+canvas.setPointerCapture(e.pointerId);pointer.down=true;pointer.px=pointer.x;pointer.py=pointer.y;move(e);
 });
-canvas.addEventListener("pointermove",updatePointer);
-function releasePointer(){pointer.down=false;}
-canvas.addEventListener("pointerup",releasePointer);
-canvas.addEventListener("pointercancel",releasePointer);
-canvas.addEventListener("lostpointercapture",releasePointer);
-canvas.addEventListener("contextmenu",e=>e.preventDefault());
-
-$("imageLoader").addEventListener("change",async e=>{
-const file=e.target.files?.[0];
-if(!file)return;
-if(!file.type.startsWith("image/")){report("Choose a valid image file.",true);return;}
-if(file.size>25*1024*1024){report("Image exceeds the 25 MB limit.",true);e.target.value="";return;}
-try{
-let bitmap=await createImageBitmap(file);
-const max=4096;
-if(bitmap.width>max||bitmap.height>max){
-const scale=Math.min(max/bitmap.width,max/bitmap.height);
-const c=document.createElement("canvas");
-c.width=Math.round(bitmap.width*scale);c.height=Math.round(bitmap.height*scale);
-c.getContext("2d").drawImage(bitmap,0,0,c.width,c.height);
-bitmap.close();bitmap=c;
+function move(e){
+const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=1-(e.clientY-r.top)/r.height;
+pointer.dx=x-pointer.px;pointer.dy=y-pointer.py;pointer.x=x;pointer.y=y;pointer.px=x;pointer.py=y;
 }
-uploadSource(bitmap);
-report("Image loaded locally.");
-}catch(err){console.error(err);report("Could not decode this image.",true);}
-});
-$("clearImageBtn").addEventListener("click",()=>{
-uploadSource(makeProceduralImage());
-$("imageLoader").value="";
-report("Procedural source restored.");
-});
-$("resetBtn").addEventListener("click",()=>{wipeBuffers();report("Simulation field reset.");});
-
-$("pauseBtn").addEventListener("click",()=>{
-running=!running;
-$("pauseBtn").textContent=running?"Pause":"Resume";
-$("pauseBtn").setAttribute("aria-pressed",String(!running));
-if(running)lastTime=0;
-report(running?"Simulation resumed.":"Simulation paused.");
-});
-
-async function stopAudio(){
-if(audioStream){audioStream.getTracks().forEach(t=>t.stop());audioStream=null;}
-if(audioCtx){const ctx=audioCtx;audioCtx=null;try{await ctx.close();}catch(_){}}
-analyser=null;audioData=null;
-audio.low=audio.mid=audio.high=0;
-audioToggle.classList.remove("active");
-audioToggle.setAttribute("aria-pressed","false");
-audioToggle.textContent="Enable microphone";
-audioStatus.textContent="Microphone off. Audio is optional.";
-}
-audioToggle.addEventListener("click",async()=>{
-if(audioStream){await stopAudio();report("Microphone disconnected.");return;}
-if(!navigator.mediaDevices?.getUserMedia){report("Microphone access requires HTTPS or localhost.",true);return;}
-audioToggle.disabled=true;
+canvas.addEventListener("pointermove",move);
+function up(){pointer.down=false;}
+canvas.addEventListener("pointerup",up);canvas.addEventListener("pointercancel",up);
+$("pause").addEventListener("click",()=>{paused=!paused;$("pause").textContent=paused?"▶ Resume":"Ⅱ Pause";last=0;});
+$("reset").addEventListener("click",()=>{clearState();say("Simulation reset.");});
+$("procedural").addEventListener("click",()=>{sourceCanvas=makeSource();uploadSource(sourceCanvas);say("Procedural material loaded.");});
+$("image").addEventListener("change",async e=>{
+const f=e.target.files&&e.target.files[0];if(!f)return;
+if(!f.type.startsWith("image/")||f.size>25*1024*1024){say("Choose an image under 25 MB.",true);return;}
 try{
-const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-audioStream=stream;
-const Ctx=window.AudioContext||window.webkitAudioContext;
-if(!Ctx)throw new Error("Web Audio is unavailable.");
-audioCtx=new Ctx();
-await audioCtx.resume();
-const source=audioCtx.createMediaStreamSource(stream);
-analyser=audioCtx.createAnalyser();
-analyser.fftSize=128;
-analyser.smoothingTimeConstant=.75;
-source.connect(analyser);
+const bmp=await createImageBitmap(f),c=document.createElement("canvas");
+const scale=Math.min(1,2048/Math.max(bmp.width,bmp.height));
+c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);
+c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close();
+uploadSource(c);setPreset("photo");say("Image loaded locally.");
+}catch(err){say("Image could not be decoded.",true);}
+});
+$("export").addEventListener("click",()=>canvas.toBlob(blob=>{
+if(!blob){say("Export failed.",true);return;}
+const u=URL.createObjectURL(blob),a=document.createElement("a");
+a.href=u;a.download="aether-living-matter.png";a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);say("Artwork exported as PNG.");
+},"image/png"));
+$("savePreset").addEventListener("click",()=>{
+try{const o={preset:presetName};controls.forEach(id=>o[id]=$(id).value);localStorage.setItem("aether-living-matter",JSON.stringify(o));say("Settings saved on this device.");}
+catch(e){say("Local settings storage is unavailable.",true);}
+});
+$("downloadSettings").addEventListener("click",()=>{
+const o={preset:presetName};controls.forEach(id=>o[id]=$(id).value);
+const blob=new Blob([JSON.stringify(o,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");
+a.href=u;a.download="aether-settings.json";a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);
+});
+$("audio").addEventListener("click",async()=>{
+if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;if(audioCtx)await audioCtx.close();audioCtx=null;analyser=null;audioData=null;$("audio").textContent="♫ Enable microphone";$("audio").classList.remove("active");say("Microphone disconnected.");return;}
+try{
+stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+const C=window.AudioContext||window.webkitAudioContext;audioCtx=new C();await audioCtx.resume();
+analyser=audioCtx.createAnalyser();analyser.fftSize=128;
+audioCtx.createMediaStreamSource(stream).connect(analyser);
 audioData=new Uint8Array(analyser.frequencyBinCount);
-audioToggle.classList.add("active");
-audioToggle.setAttribute("aria-pressed","true");
-audioToggle.textContent="Disable microphone";
-audioStatus.textContent="Microphone active. Audio is processed locally.";
-report("Audio reactivity enabled.");
-}catch(err){
-console.warn(err);await stopAudio();
-audioStatus.textContent=err.name==="NotAllowedError"?"Microphone permission denied.":"Unable to start microphone.";
-report(audioStatus.textContent,true);
-}finally{audioToggle.disabled=false;}
+$("audio").textContent="♫ Disable microphone";$("audio").classList.add("active");say("Audio reactivity enabled.");
+}catch(e){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;say("Microphone permission unavailable. Use HTTPS.",true);}
 });
-
-$("exportBtn").addEventListener("click",()=>{
-if(contextLost||!gl||gl.isContextLost()){report("Graphics are unavailable for export.",true);return;}
-canvas.toBlob(blob=>{
-if(!blob){report("PNG export failed. Please try again.",true);return;}
-const url=URL.createObjectURL(blob);
-const a=document.createElement("a");
-a.href=url;a.download="aether-alchemist-"+new Date().toISOString().replace(/[:.]/g,"-")+".png";
-document.body.appendChild(a);a.click();a.remove();
-setTimeout(()=>URL.revokeObjectURL(url),2000);
-report("PNG export downloaded.");
-},"image/png");
-});
-
-canvas.addEventListener("webglcontextlost",e=>{
-e.preventDefault();
-contextLost=true;
-cancelAnimationFrame(frameHandle);
-targets=[];
-sourceTexture=null;simProgram=null;displayProgram=null;vao=null;positionBuffer=null;
-engineStatus.textContent="GPU context lost";
-report("GPU context lost. Waiting for browser recovery.",true);
-});
+canvas.addEventListener("webglcontextlost",e=>{e.preventDefault();dead=true;cancelAnimationFrame(raf);engine.textContent="GPU LOST";say("GPU context lost. Attempting recovery…",true);});
 canvas.addEventListener("webglcontextrestored",()=>{
+try{dead=false;states=[];sourceTexture=null;simProgram=null;displayProgram=null;vao=null;buffer=null;init();last=0;raf=requestAnimationFrame(draw);say("Graphics restored.");}
+catch(e){say("GPU recovery failed: "+e.message,true);}
+});
+window.addEventListener("resize",resize);
+document.addEventListener("visibilitychange",()=>{last=0;});
+window.addEventListener("pagehide",()=>{cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());});
 try{
-contextLost=false;
-initializeGL();
-lastTime=0;
-engineStatus.textContent="WebGL2 restored";
-report("Graphics recovered successfully.");
-frameHandle=requestAnimationFrame(draw);
-}catch(err){
-console.error(err);
-engineStatus.textContent="Recovery failed";
-report("Graphics recovery failed: "+err.message,true);
-}
-});
-
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)lastTime=0;});
-window.addEventListener("pagehide",()=>{cancelAnimationFrame(frameHandle);stopAudio();});
-window.addEventListener("pageshow",()=>{
-if(!contextLost&&running&&!document.hidden&&gl&&!gl.isContextLost()){
-lastTime=0;cancelAnimationFrame(frameHandle);frameHandle=requestAnimationFrame(draw);
-}
-});
-window.addEventListener("resize",resizeCanvas);
-if("ResizeObserver" in window){resizeObserver=new ResizeObserver(resizeCanvas);resizeObserver.observe(canvas);}
-
-window.addEventListener("beforeinstallprompt",e=>{
-e.preventDefault();deferredInstallPrompt=e;installBtn.hidden=false;
-});
-installBtn.addEventListener("click",async()=>{
-if(!deferredInstallPrompt)return;
-deferredInstallPrompt.prompt();
-await deferredInstallPrompt.userChoice;
-deferredInstallPrompt=null;installBtn.hidden=true;
-});
-window.addEventListener("appinstalled",()=>{installBtn.hidden=true;report("App installed.");});
-
-async function start(){
-try{
-initializeGL();
-updateLabels();
-report("Rendering ready. Drag on the canvas to interact.");
-frameHandle=requestAnimationFrame(draw);
-}catch(err){
-console.error(err);
-engineStatus.textContent="Initialization failed";
-report(err.message,true);
-canvas.hidden=true;
-}
-if("serviceWorker" in navigator&&location.protocol!=="file:"){
-try{await navigator.serviceWorker.register("./sw.js");}
-catch(err){console.warn("Service worker registration failed",err);}
-}
-}
-start();
+const saved=JSON.parse(localStorage.getItem("aether-living-matter")||"null");
+if(saved){for(const id of controls)if(saved[id]!=null)$(id).value=saved[id];if(presets[saved.preset])presetName=saved.preset;}
+}catch(e){}
+labels();
+try{init();say("Ready. Drag to stir the living field.");raf=requestAnimationFrame(draw);}
+catch(e){engine.textContent="GPU ERROR";say(e.message,true);console.error(e);}
+if("serviceWorker" in navigator&&location.protocol!=="file:")navigator.serviceWorker.register("./sw.js").catch(()=>{});
 })();
 </script>
 </body>
