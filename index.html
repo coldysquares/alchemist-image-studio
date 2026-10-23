@@ -1,0 +1,595 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080914">
+<meta name="description" content="Aether Alchemist — interactive GPU-generated art with fluid fields and optional audio reactivity.">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<title>Aether Alchemist Studio</title>
+<style>
+:root{color-scheme:dark;--bg:#080914;--panel:#101426;--border:#252c45;--text:#f4f5ff;--muted:#929bb7;--purple:#a855f7;--cyan:#67e8f9;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--text)}
+button,input{font:inherit}
+button{touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.app{width:min(1800px,100%);min-height:100vh;min-height:100dvh;margin:auto;padding:18px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:14px}
+h1{margin:0;font-size:clamp(1.15rem,3vw,1.7rem);font-weight:900;letter-spacing:-.055em;background:linear-gradient(110deg,#c084fc,#818cf8,#67e8f9);color:transparent;background-clip:text}
+.subtitle,.muted,.footer{color:var(--muted);font-size:.8rem}
+.subtitle{margin-top:4px}
+.dashboard{display:grid;grid-template-columns:minmax(250px,310px) minmax(0,1fr);gap:16px;flex:1;min-height:440px}
+.panel,.viewer{min-width:0;border:1px solid var(--border);border-radius:16px;background:var(--panel)}
+.panel{padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.group{display:grid;gap:10px;padding:12px;background:#080b15;border:1px solid #20263b;border-radius:11px}
+.group-title{color:var(--cyan);font-size:.69rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+label{font-size:.8rem;color:#d8def2}
+.range-head{display:flex;justify-content:space-between;gap:8px}
+output{color:var(--cyan);font: .78rem ui-monospace,monospace}
+input[type=range]{width:100%;accent-color:var(--cyan)}
+input[type=file]{max-width:100%;font-size:.8rem}
+.btn{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 12px;border-radius:9px;border:1px solid var(--border);color:var(--text);background:#171c31;cursor:pointer;font-size:.82rem;font-weight:700}
+.btn.primary{background:linear-gradient(120deg,#9333ea,#4f46e5);border-color:transparent}
+.btn:hover{filter:brightness(1.12)}
+.btn.active{border-color:#34d399;color:#6ee7b7}
+.btn-row,.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row>*{flex:1}
+.viewer{position:relative;min-height:0;overflow:hidden;background:#03040a}
+canvas{display:block;width:100%;height:100%;min-height:400px;touch-action:none;cursor:crosshair}
+.status{position:absolute;z-index:2;left:12px;top:12px;padding:7px 11px;border:1px solid #303650;border-radius:30px;background:#080914e8;font:.72rem ui-monospace,monospace}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;background:#a855f7;box-shadow:0 0 9px #a855f7}
+.message{padding:10px 12px;border-radius:9px;background:#171c31;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+.message.error{color:#fca5a5;border:1px solid #7f1d1d}
+.footer{font-size:.73rem}
+[hidden]{display:none!important}
+@media(min-width:900px){.dashboard{height:calc(100dvh - 125px)}.panel{max-height:calc(100dvh - 125px)}}
+@media(max-width:760px){.app{padding:12px;gap:12px}.dashboard{grid-template-columns:1fr;min-height:0}.viewer{order:1;min-height:48dvh}.panel{order:2;overflow:visible}canvas{min-height:48dvh}.header-actions{max-width:135px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div><h1>AETHER ALCHEMIST</h1><div class="subtitle">Interactive WebGL · Fluid fields · Kinetic resonance</div></div>
+<div class="header-actions">
+<button class="btn" id="installBtn" hidden>Install app</button>
+<button class="btn" id="pauseBtn" aria-pressed="false">Pause</button>
+</div>
+</header>
+
+<main class="dashboard">
+<aside class="panel" aria-label="Simulation controls">
+<section class="group">
+<div class="group-title">01 / Source material</div>
+<label for="imageLoader">Load an image</label>
+<input id="imageLoader" type="file" accept="image/*">
+<button class="btn" id="clearImageBtn">Use procedural source</button>
+</section>
+<section class="group">
+<div class="group-title">02 / Acoustic resonance</div>
+<button class="btn" id="audioToggle" aria-pressed="false">Enable microphone</button>
+<div class="muted" id="audioStatus" role="status">Microphone off. Audio is optional.</div>
+</section>
+<section class="group">
+<div class="group-title">03 / Fluid advection</div>
+<div class="range-head"><label for="viscSlider">Viscosity retention</label><output id="viscVal">0.990</output></div>
+<input id="viscSlider" type="range" min="950" max="1000" value="990">
+</section>
+<section class="group">
+<div class="group-title">04 / Reaction field</div>
+<div class="range-head"><label for="turingSlider">Growth speed</label><output id="turingVal">0.40</output></div>
+<input id="turingSlider" type="range" min="10" max="80" step="5" value="40">
+</section>
+<section class="group">
+<div class="group-title">05 / Chromatic optics</div>
+<div class="range-head"><label for="prismSlider">Prism split</label><output id="prismVal">0.015</output></div>
+<input id="prismSlider" type="range" min="0" max="50" value="15">
+</section>
+<section class="group">
+<div class="group-title">06 / Signal disruption</div>
+<div class="range-head"><label for="glitchSlider">Glitch intensity</label><output id="glitchVal">0.00</output></div>
+<input id="glitchSlider" type="range" min="0" max="100" step="5" value="0">
+</section>
+<div class="btn-row">
+<button class="btn" id="resetBtn">Reset field</button>
+<button class="btn primary" id="exportBtn">Export PNG</button>
+</div>
+<div id="appMessage" class="message" role="status" aria-live="polite">Initializing graphics…</div>
+</aside>
+
+<section class="viewer" aria-label="Interactive simulation">
+<div class="status"><span class="dot"></span><span id="engineStatus">Starting WebGL2</span> · <span id="fps">—</span> FPS</div>
+<canvas id="mainGLCanvas" aria-label="Interactive artwork. Drag or touch to disturb the field."></canvas>
+</section>
+</main>
+<footer class="footer">Images and audio analysis remain local to this app. Microphone access is optional. Installation and offline caching require HTTPS or localhost.</footer>
+</div>
+
+<script>
+"use strict";
+(() => {
+const $ = id => document.getElementById(id);
+const canvas = $("mainGLCanvas");
+const message = $("appMessage");
+const engineStatus = $("engineStatus");
+const fpsDisplay = $("fps");
+const audioToggle = $("audioToggle");
+const audioStatus = $("audioStatus");
+const installBtn = $("installBtn");
+
+let gl = null, simProgram = null, displayProgram = null, vao = null, positionBuffer = null;
+let targets = [], sourceTexture = null, sourceImage = null;
+let currentIndex = 0, running = true, contextLost = false;
+let frameHandle = 0, lastTime = 0, fpsFrames = 0, fpsElapsed = 0;
+let audioCtx = null, analyser = null, audioStream = null, audioData = null;
+let deferredInstallPrompt = null, resizeObserver = null;
+let simWidth = 512, simHeight = 512;
+
+const pointer = {x:.5,y:.5,down:false,force:.65};
+const audio = {low:0,mid:0,high:0};
+const simU = {}, displayU = {};
+
+function report(text,error=false){
+message.textContent=text;
+message.classList.toggle("error",error);
+}
+
+function compileShader(type,source){
+const shader=gl.createShader(type);
+if(!shader) throw new Error("Unable to allocate GPU shader.");
+gl.shaderSource(shader,source);
+gl.compileShader(shader);
+if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
+const log=gl.getShaderInfoLog(shader)||"Unknown shader compilation error";
+gl.deleteShader(shader);
+throw new Error(log);
+}
+return shader;
+}
+
+function makeProgram(fragmentSource){
+const vsSource=`#version 300 es
+in vec2 position;
+out vec2 vUv;
+void main(){vUv=position*.5+.5;gl_Position=vec4(position,0.,1.);}`;
+const vs=compileShader(gl.VERTEX_SHADER,vsSource);
+const fs=compileShader(gl.FRAGMENT_SHADER,fragmentSource);
+const program=gl.createProgram();
+if(!program){gl.deleteShader(vs);gl.deleteShader(fs);throw new Error("Unable to allocate GPU program.");}
+gl.attachShader(program,vs);
+gl.attachShader(program,fs);
+gl.bindAttribLocation(program,0,"position");
+gl.linkProgram(program);
+gl.deleteShader(vs);
+gl.deleteShader(fs);
+if(!gl.getProgramParameter(program,gl.LINK_STATUS)){
+const log=gl.getProgramInfoLog(program)||"Unknown program link error";
+gl.deleteProgram(program);
+throw new Error(log);
+}
+return program;
+}
+
+const simShader=`#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uCurrentBuffer,uSourceTexture;
+uniform vec2 uTexel;
+uniform vec4 uMouse,uParams;
+uniform vec3 uAudio;
+uniform float uTime;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+void main(){
+vec4 c=texture(uCurrentBuffer,vUv);
+vec4 t=texture(uCurrentBuffer,vUv+vec2(0.,uTexel.y));
+vec4 b=texture(uCurrentBuffer,vUv-vec2(0.,uTexel.y));
+vec4 r=texture(uCurrentBuffer,vUv+vec2(uTexel.x,0.));
+vec4 l=texture(uCurrentBuffer,vUv-vec2(uTexel.x,0.));
+vec2 velocity=c.xy-vec2(r.z-l.z,t.z-b.z)*.35;
+velocity*=uParams.x;
+velocity+=vec2(sin(vUv.y*24.+uTime),cos(vUv.x*24.-uTime))*uAudio.x*.012;
+vec2 back=clamp(vUv-velocity*.035,uTexel*.5,vec2(1.)-uTexel*.5);
+vec4 adv=texture(uCurrentBuffer,back);
+float lap=(t.z+b.z+r.z+l.z)*.25-c.z;
+vec3 src=texture(uSourceTexture,vUv).rgb;
+float luma=dot(src,vec3(.299,.587,.114));
+float density=adv.z+lap*uParams.y*.22;
+density=mix(density,luma,.008+uAudio.y*.025);
+float g=uParams.w;
+float sweep=step(1.-g*.35,hash(vec2(floor(vUv.y*90.),floor(uTime*5.))));
+density+=sweep*g*(hash(vUv+uTime)-.5)*.18;
+velocity.x+=sweep*g*sin(vUv.y*180.+uTime)*.012;
+if(uMouse.z>.5){
+float d=distance(vUv,uMouse.xy);
+float f=max(0.,1.-d/.09)*uMouse.w;
+velocity+=(uMouse.xy-vUv)*f*.12;
+density+=f*.12;
+}
+fragColor=vec4(clamp(velocity,vec2(-1.),vec2(1.)),clamp(density,0.,1.),1.);
+}`;
+
+const displayShader=`#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uCurrentBuffer,uSourceTexture;
+uniform float uPrism,uTime;
+void main(){
+vec2 o=vec2(uPrism,0.);
+float r=texture(uCurrentBuffer,vUv-o).z;
+float g=texture(uCurrentBuffer,vUv).z;
+float b=texture(uCurrentBuffer,vUv+o).z;
+vec3 field=vec3(r*1.22,g*.88,b*1.35);
+vec3 original=texture(uSourceTexture,vUv).rgb;
+vec3 color=mix(original,field,.78);
+color+=vec3(.025,0.,.045)*sin(uTime+vUv.y*8.);
+fragColor=vec4(clamp(color,0.,1.),1.);
+}`;
+
+function cacheUniforms(program,names,target){
+for(const name of names) target[name]=gl.getUniformLocation(program,name);
+}
+
+function makeProceduralImage(){
+const c=document.createElement("canvas");
+c.width=c.height=512;
+const ctx=c.getContext("2d");
+const gradient=ctx.createLinearGradient(0,0,512,512);
+gradient.addColorStop(0,"#312e81");
+gradient.addColorStop(.48,"#c026d3");
+gradient.addColorStop(1,"#06b6d4");
+ctx.fillStyle=gradient;ctx.fillRect(0,0,512,512);
+for(let i=0;i<22;i++){
+const x=i*137.5%512,y=i*83.3%512,r=12+(i*19)%80;
+const g=ctx.createRadialGradient(x,y,0,x,y,r);
+g.addColorStop(0,"rgba(255,255,255,.35)");
+g.addColorStop(1,"rgba(255,255,255,0)");
+ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);
+}
+return c;
+}
+
+function deleteGPUResources(){
+if(!gl||gl.isContextLost())return;
+for(const t of targets){
+if(t.texture)gl.deleteTexture(t.texture);
+if(t.framebuffer)gl.deleteFramebuffer(t.framebuffer);
+}
+targets=[];
+if(sourceTexture)gl.deleteTexture(sourceTexture);
+if(simProgram)gl.deleteProgram(simProgram);
+if(displayProgram)gl.deleteProgram(displayProgram);
+if(vao)gl.deleteVertexArray(vao);
+if(positionBuffer)gl.deleteBuffer(positionBuffer);
+sourceTexture=null;simProgram=null;displayProgram=null;vao=null;positionBuffer=null;
+}
+
+function uploadSource(image){
+sourceImage=image;
+if(!sourceTexture)sourceTexture=gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D,sourceTexture);
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+wipeBuffers();
+}
+
+function wipeBuffers(){
+if(!gl||gl.isContextLost()||!targets.length)return;
+for(const target of targets){
+gl.bindFramebuffer(gl.FRAMEBUFFER,target.framebuffer);
+gl.viewport(0,0,simWidth,simHeight);
+gl.clearColor(0,0,0,1);
+gl.clear(gl.COLOR_BUFFER_BIT);
+}
+gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+currentIndex=0;
+}
+
+function initTargets(){
+targets=[];
+const linear=!!gl.getExtension("OES_texture_float_linear");
+for(let i=0;i<2;i++){
+const texture=gl.createTexture(),framebuffer=gl.createFramebuffer();
+if(!texture||!framebuffer)throw new Error("Could not allocate simulation buffers.");
+gl.bindTexture(gl.TEXTURE_2D,texture);
+const filter=linear?gl.LINEAR:gl.NEAREST;
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA16F,simWidth,simHeight,0,gl.RGBA,gl.HALF_FLOAT,null);
+gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer);
+gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texture,0);
+if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE){
+gl.deleteTexture(texture);gl.deleteFramebuffer(framebuffer);
+throw new Error("This GPU cannot render to the required floating-point texture.");
+}
+targets.push({texture,framebuffer});
+}
+wipeBuffers();
+gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}
+
+function resizeCanvas(){
+if(!gl||gl.isContextLost())return;
+const rect=canvas.getBoundingClientRect();
+const dpr=Math.min(window.devicePixelRatio||1,2);
+const w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
+if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+gl.viewport(0,0,w,h);
+}
+
+function initializeGL(){
+gl=canvas.getContext("webgl2",{
+alpha:false,depth:false,stencil:false,antialias:false,
+preserveDrawingBuffer:true,premultipliedAlpha:false,
+powerPreference:"high-performance"
+});
+if(!gl)throw new Error("WebGL2 is unavailable in this browser.");
+if(!gl.getExtension("EXT_color_buffer_float"))
+throw new Error("This GPU does not support floating-point render targets.");
+
+simProgram=makeProgram(simShader);
+displayProgram=makeProgram(displayShader);
+cacheUniforms(simProgram,["uCurrentBuffer","uSourceTexture","uTexel","uMouse","uAudio","uParams","uTime"],simU);
+cacheUniforms(displayProgram,["uCurrentBuffer","uSourceTexture","uPrism","uTime"],displayU);
+
+vao=gl.createVertexArray();
+positionBuffer=gl.createBuffer();
+gl.bindVertexArray(vao);
+gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+gl.disable(gl.DEPTH_TEST);
+gl.disable(gl.BLEND);
+
+resizeCanvas();
+initTargets();
+sourceTexture=null;
+uploadSource(sourceImage||makeProceduralImage());
+engineStatus.textContent="WebGL2 online";
+}
+
+function bindTexture(unit,texture,uniforms,name){
+gl.activeTexture(gl.TEXTURE0+unit);
+gl.bindTexture(gl.TEXTURE_2D,texture);
+gl.uniform1i(uniforms[name],unit);
+}
+
+function updateAudio(){
+if(!analyser||!audioData)return;
+analyser.getByteFrequencyData(audioData);
+const band=(start,end)=>{
+let sum=0,count=0;
+for(let i=start;i<Math.min(end,audioData.length);i++){sum+=audioData[i];count++;}
+return sum/(Math.max(1,count)*255);
+};
+audio.low=band(1,4);audio.mid=band(4,12);audio.high=band(12,24);
+}
+
+function draw(now){
+if(contextLost||!gl||gl.isContextLost())return;
+if(!running||document.hidden){frameHandle=requestAnimationFrame(draw);return;}
+const dt=lastTime?Math.min((now-lastTime)/1000,.05):1/60;
+lastTime=now;
+const time=now/1000;
+fpsFrames++;fpsElapsed+=dt;
+if(fpsElapsed>=1){fpsDisplay.textContent=String(Math.round(fpsFrames/fpsElapsed));fpsFrames=0;fpsElapsed=0;}
+updateAudio();
+
+const next=1-currentIndex;
+gl.bindVertexArray(vao);
+gl.useProgram(simProgram);
+gl.bindFramebuffer(gl.FRAMEBUFFER,targets[next].framebuffer);
+gl.viewport(0,0,simWidth,simHeight);
+gl.uniform2f(simU.uTexel,1/simWidth,1/simHeight);
+gl.uniform4f(simU.uMouse,pointer.x,pointer.y,pointer.down?1:0,pointer.force);
+gl.uniform3f(simU.uAudio,audio.low,audio.mid,audio.high);
+gl.uniform4f(simU.uParams,Number($("viscSlider").value)/1000,Number($("turingSlider").value)/100,Number($("prismSlider").value)/1000,Number($("glitchSlider").value)/100);
+gl.uniform1f(simU.uTime,time);
+bindTexture(0,targets[currentIndex].texture,simU,"uCurrentBuffer");
+bindTexture(1,sourceTexture,simU,"uSourceTexture");
+gl.drawArrays(gl.TRIANGLES,0,6);
+
+gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+gl.viewport(0,0,canvas.width,canvas.height);
+gl.useProgram(displayProgram);
+gl.uniform1f(displayU.uPrism,Number($("prismSlider").value)/1000);
+gl.uniform1f(displayU.uTime,time);
+bindTexture(0,targets[next].texture,displayU,"uCurrentBuffer");
+bindTexture(1,sourceTexture,displayU,"uSourceTexture");
+gl.drawArrays(gl.TRIANGLES,0,6);
+currentIndex=next;
+gl.bindVertexArray(null);
+frameHandle=requestAnimationFrame(draw);
+}
+
+function updateLabels(){
+$("viscVal").textContent=(+$("viscSlider").value/1000).toFixed(3);
+$("turingVal").textContent=(+$("turingSlider").value/100).toFixed(2);
+$("prismVal").textContent=(+$("prismSlider").value/1000).toFixed(3);
+$("glitchVal").textContent=(+$("glitchSlider").value/100).toFixed(2);
+}
+["viscSlider","turingSlider","prismSlider","glitchSlider"].forEach(id=>$(id).addEventListener("input",updateLabels));
+
+function updatePointer(e){
+const r=canvas.getBoundingClientRect();
+pointer.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+pointer.y=1-Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));
+}
+canvas.addEventListener("pointerdown",e=>{
+if(e.pointerType==="mouse"&&e.button!==0)return;
+updatePointer(e);pointer.down=true;
+try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+});
+canvas.addEventListener("pointermove",updatePointer);
+function releasePointer(){pointer.down=false;}
+canvas.addEventListener("pointerup",releasePointer);
+canvas.addEventListener("pointercancel",releasePointer);
+canvas.addEventListener("lostpointercapture",releasePointer);
+canvas.addEventListener("contextmenu",e=>e.preventDefault());
+
+$("imageLoader").addEventListener("change",async e=>{
+const file=e.target.files?.[0];
+if(!file)return;
+if(!file.type.startsWith("image/")){report("Choose a valid image file.",true);return;}
+if(file.size>25*1024*1024){report("Image exceeds the 25 MB limit.",true);e.target.value="";return;}
+try{
+let bitmap=await createImageBitmap(file);
+const max=4096;
+if(bitmap.width>max||bitmap.height>max){
+const scale=Math.min(max/bitmap.width,max/bitmap.height);
+const c=document.createElement("canvas");
+c.width=Math.round(bitmap.width*scale);c.height=Math.round(bitmap.height*scale);
+c.getContext("2d").drawImage(bitmap,0,0,c.width,c.height);
+bitmap.close();bitmap=c;
+}
+uploadSource(bitmap);
+report("Image loaded locally.");
+}catch(err){console.error(err);report("Could not decode this image.",true);}
+});
+$("clearImageBtn").addEventListener("click",()=>{
+uploadSource(makeProceduralImage());
+$("imageLoader").value="";
+report("Procedural source restored.");
+});
+$("resetBtn").addEventListener("click",()=>{wipeBuffers();report("Simulation field reset.");});
+
+$("pauseBtn").addEventListener("click",()=>{
+running=!running;
+$("pauseBtn").textContent=running?"Pause":"Resume";
+$("pauseBtn").setAttribute("aria-pressed",String(!running));
+if(running)lastTime=0;
+report(running?"Simulation resumed.":"Simulation paused.");
+});
+
+async function stopAudio(){
+if(audioStream){audioStream.getTracks().forEach(t=>t.stop());audioStream=null;}
+if(audioCtx){const ctx=audioCtx;audioCtx=null;try{await ctx.close();}catch(_){}}
+analyser=null;audioData=null;
+audio.low=audio.mid=audio.high=0;
+audioToggle.classList.remove("active");
+audioToggle.setAttribute("aria-pressed","false");
+audioToggle.textContent="Enable microphone";
+audioStatus.textContent="Microphone off. Audio is optional.";
+}
+audioToggle.addEventListener("click",async()=>{
+if(audioStream){await stopAudio();report("Microphone disconnected.");return;}
+if(!navigator.mediaDevices?.getUserMedia){report("Microphone access requires HTTPS or localhost.",true);return;}
+audioToggle.disabled=true;
+try{
+const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+audioStream=stream;
+const Ctx=window.AudioContext||window.webkitAudioContext;
+if(!Ctx)throw new Error("Web Audio is unavailable.");
+audioCtx=new Ctx();
+await audioCtx.resume();
+const source=audioCtx.createMediaStreamSource(stream);
+analyser=audioCtx.createAnalyser();
+analyser.fftSize=128;
+analyser.smoothingTimeConstant=.75;
+source.connect(analyser);
+audioData=new Uint8Array(analyser.frequencyBinCount);
+audioToggle.classList.add("active");
+audioToggle.setAttribute("aria-pressed","true");
+audioToggle.textContent="Disable microphone";
+audioStatus.textContent="Microphone active. Audio is processed locally.";
+report("Audio reactivity enabled.");
+}catch(err){
+console.warn(err);await stopAudio();
+audioStatus.textContent=err.name==="NotAllowedError"?"Microphone permission denied.":"Unable to start microphone.";
+report(audioStatus.textContent,true);
+}finally{audioToggle.disabled=false;}
+});
+
+$("exportBtn").addEventListener("click",()=>{
+if(contextLost||!gl||gl.isContextLost()){report("Graphics are unavailable for export.",true);return;}
+canvas.toBlob(blob=>{
+if(!blob){report("PNG export failed. Please try again.",true);return;}
+const url=URL.createObjectURL(blob);
+const a=document.createElement("a");
+a.href=url;a.download="aether-alchemist-"+new Date().toISOString().replace(/[:.]/g,"-")+".png";
+document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),2000);
+report("PNG export downloaded.");
+},"image/png");
+});
+
+canvas.addEventListener("webglcontextlost",e=>{
+e.preventDefault();
+contextLost=true;
+cancelAnimationFrame(frameHandle);
+targets=[];
+sourceTexture=null;simProgram=null;displayProgram=null;vao=null;positionBuffer=null;
+engineStatus.textContent="GPU context lost";
+report("GPU context lost. Waiting for browser recovery.",true);
+});
+canvas.addEventListener("webglcontextrestored",()=>{
+try{
+contextLost=false;
+initializeGL();
+lastTime=0;
+engineStatus.textContent="WebGL2 restored";
+report("Graphics recovered successfully.");
+frameHandle=requestAnimationFrame(draw);
+}catch(err){
+console.error(err);
+engineStatus.textContent="Recovery failed";
+report("Graphics recovery failed: "+err.message,true);
+}
+});
+
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)lastTime=0;});
+window.addEventListener("pagehide",()=>{cancelAnimationFrame(frameHandle);stopAudio();});
+window.addEventListener("pageshow",()=>{
+if(!contextLost&&running&&!document.hidden&&gl&&!gl.isContextLost()){
+lastTime=0;cancelAnimationFrame(frameHandle);frameHandle=requestAnimationFrame(draw);
+}
+});
+window.addEventListener("resize",resizeCanvas);
+if("ResizeObserver" in window){resizeObserver=new ResizeObserver(resizeCanvas);resizeObserver.observe(canvas);}
+
+window.addEventListener("beforeinstallprompt",e=>{
+e.preventDefault();deferredInstallPrompt=e;installBtn.hidden=false;
+});
+installBtn.addEventListener("click",async()=>{
+if(!deferredInstallPrompt)return;
+deferredInstallPrompt.prompt();
+await deferredInstallPrompt.userChoice;
+deferredInstallPrompt=null;installBtn.hidden=true;
+});
+window.addEventListener("appinstalled",()=>{installBtn.hidden=true;report("App installed.");});
+
+async function start(){
+try{
+initializeGL();
+updateLabels();
+report("Rendering ready. Drag on the canvas to interact.");
+frameHandle=requestAnimationFrame(draw);
+}catch(err){
+console.error(err);
+engineStatus.textContent="Initialization failed";
+report(err.message,true);
+canvas.hidden=true;
+}
+if("serviceWorker" in navigator&&location.protocol!=="file:"){
+try{await navigator.serviceWorker.register("./sw.js");}
+catch(err){console.warn("Service worker registration failed",err);}
+}
+}
+start();
+})();
+</script>
+</body>
+</html>

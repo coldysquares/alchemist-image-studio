@@ -1,0 +1,22 @@
+
+{
+  "id": "./",
+  "name": "Aether Alchemist: Hyper-WebGL Studio",
+  "short_name": "Aether Alchemist",
+  "description": "Interactive GPU-generated art and audio-reactive visuals.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080914",
+  "theme_color": "#080914",
+  "categories": ["art", "design"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
